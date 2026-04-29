@@ -28,6 +28,7 @@ public partial class MainWindow : Window
 {
 	private readonly ObservableCollection<ColorProject> _projects = [];
 	private readonly ObservableCollection<PickedColor> _recentColors = [];
+	private readonly ObservableCollection<SlotSwatchViewModel> _slotSwatches = [];
 	private Services.HotkeyService? _hotkeyService;
 	private Views.PickerOverlay? _overlay;
 	private int _activeSlot = -1;
@@ -59,6 +60,7 @@ public partial class MainWindow : Window
 		}
 		ProjectsList.SelectedIndex = Math.Max(0, ProjectsList.SelectedIndex);
 		RenderRecents();
+		SlotsItemsControl.ItemsSource = _slotSwatches;
 	}
 
 	private void HotkeyService_HotkeyPressed(object? sender, EventArgs e) => OpenSamplingOverlay();
@@ -122,41 +124,32 @@ public partial class MainWindow : Window
 
 	private void RenderSlots(ColorProject project)
 	{
-		SlotsGrid.Children.Clear();
+		_slotSwatches.Clear();
 		for (int i = 0; i < project.Slots.Count; i++)
 		{
 			var slot = project.Slots[i];
 			var colorHex = slot.Hex ?? (i % 2 == 0 ? "#FFFFFF" : "#000000");
 			var col = (MediaColor)WpfColorConverter.ConvertFromString(colorHex);
 			var gray = ToGray(col);
-			var top = SwatchBlock(colorHex, col, i, true);
-			var bottom = SwatchBlock(ToHex(gray), gray, i, false);
-			var panel = new StackPanel();
-			panel.Children.Add(top);
-			panel.Children.Add(bottom);
-			SlotsGrid.Children.Add(panel);
+			_slotSwatches.Add(new SlotSwatchViewModel
+			{
+				Index = i,
+				EditableHex = colorHex,
+				GrayHex = ToHex(gray),
+				EditableBrush = new SolidColorBrush(col),
+				GrayBrush = new SolidColorBrush(gray),
+				EditableTextBrush = new SolidColorBrush(GetReadableText(col)),
+				GrayTextBrush = new SolidColorBrush(GetReadableText(gray))
+			});
 		}
 	}
 
-	private Border SwatchBlock(string hex, MediaColor color, int index, bool editable)
+	private void EditableSwatch_Loaded(object sender, RoutedEventArgs e)
 	{
-		var textColor = GetReadableText(color);
-		var border = new Border
+		if (sender is Border b && b.Tag is int index)
 		{
-			Height = 110,
-			Margin = new Thickness(1),
-			Background = new SolidColorBrush(color),
-			Child = new TextBlock { Text = hex, Foreground = new SolidColorBrush(textColor), FontWeight = FontWeights.Bold, FontSize = 21, Margin = new Thickness(8, 10, 8, 0) },
-			ToolTip = editable ? "Right-click to Add/Remove; drag recent colors here" : "Calculated grayscale",
-			Tag = index,
-			AllowDrop = editable
-		};
-		if (editable)
-		{
-			border.ContextMenu = BuildSlotMenu(index);
-			border.Drop += Slot_Drop;
+			b.ContextMenu = BuildSlotMenu(index);
 		}
-		return border;
 	}
 
  private WpfContextMenu BuildSlotMenu(int index)
@@ -317,6 +310,18 @@ public partial class MainWindow : Window
 	{
 		SaveState();
 		_hotkeyService?.Dispose();
+	}
+
+
+	private sealed class SlotSwatchViewModel
+	{
+		public int Index { get; init; }
+		public string EditableHex { get; init; } = string.Empty;
+		public string GrayHex { get; init; } = string.Empty;
+		public SolidColorBrush EditableBrush { get; init; } = WpfBrushes.Transparent;
+		public SolidColorBrush GrayBrush { get; init; } = WpfBrushes.Transparent;
+		public SolidColorBrush EditableTextBrush { get; init; } = WpfBrushes.White;
+		public SolidColorBrush GrayTextBrush { get; init; } = WpfBrushes.White;
 	}
 
 	private sealed class AppState
