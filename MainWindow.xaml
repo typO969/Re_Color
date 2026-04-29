@@ -41,8 +41,9 @@
 
       <Grid Grid.Row="2" Margin="0,12,0,0">
          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="330" />
-            <ColumnDefinition Width="*" />
+            <ColumnDefinition x:Name="LeftPaneColumn" Width="330" MinWidth="240" />
+            <ColumnDefinition Width="6" />
+            <ColumnDefinition x:Name="RightPaneColumn" Width="*" MinWidth="420" />
          </Grid.ColumnDefinitions>
 
          <Border Grid.Column="0" Padding="10" Background="#1E1E1E" BorderBrush="#353535" BorderThickness="1" CornerRadius="8">
@@ -58,7 +59,18 @@
             </DockPanel>
          </Border>
 
-         <Grid Grid.Column="1" Margin="12,0,0,0">
+         <GridSplitter
+            Grid.Column="1"
+            Width="6"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+            ResizeBehavior="PreviousAndNext"
+            ResizeDirection="Columns"
+            Background="#2C2C2C"
+            ShowsPreview="True"
+            DragCompleted="ColumnSplitter_DragCompleted" />
+
+         <Grid Grid.Column="2" Margin="12,0,0,0">
             <Grid.RowDefinitions>
                <RowDefinition Height="Auto" />
                <RowDefinition Height="Auto" />
