@@ -16,7 +16,7 @@ public sealed class ProjectSerializationService
 		PropertyNamingPolicy = JsonNamingPolicy.CamelCase
 	};
 
-	public string SerializeAppState(IReadOnlyCollection<ColorProject> projects, IReadOnlyCollection<string> recentHex, double windowWidth, double windowHeight)
+	public string SerializeAppState(IReadOnlyCollection<ColorProject> projects, IReadOnlyCollection<string> recentHex, double windowWidth, double windowHeight, double leftColumnWidth = 330)
 	{
 		var state = new AppStateDto
 		{
@@ -24,15 +24,16 @@ public sealed class ProjectSerializationService
 			Projects = projects.Select(ToProjectDto).ToList(),
 			RecentHex = recentHex.ToList(),
 			WindowWidth = windowWidth,
-			WindowHeight = windowHeight
+			WindowHeight = windowHeight,
+			LeftColumnWidth = leftColumnWidth
 		};
 		return JsonSerializer.Serialize(state, JsonOptions);
 	}
 
-	public (List<ColorProject> Projects, List<string> RecentHex, double WindowWidth, double WindowHeight) DeserializeAppState(string json)
+	public (List<ColorProject> Projects, List<string> RecentHex, double WindowWidth, double WindowHeight, double LeftColumnWidth) DeserializeAppState(string json)
 	{
 		var state = JsonSerializer.Deserialize<AppStateDto>(json, JsonOptions) ?? new AppStateDto();
-		return (state.Projects.Select(ToProject).ToList(), state.RecentHex, state.WindowWidth, state.WindowHeight);
+		return (state.Projects.Select(ToProject).ToList(), state.RecentHex, state.WindowWidth, state.WindowHeight, state.LeftColumnWidth);
 	}
 
 	public string SerializeProjects(IEnumerable<ColorProject> projects)
@@ -134,6 +135,7 @@ public sealed class ProjectSerializationService
 		public List<string> RecentHex { get; set; } = [];
 		public double WindowWidth { get; set; }
 		public double WindowHeight { get; set; }
+		public double LeftColumnWidth { get; set; } = 330;
 	}
 
 	private sealed class ProjectExportDto

@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
@@ -341,7 +342,7 @@ public partial class MainWindow : Window
 	private void SaveState()
 	{
 		Directory.CreateDirectory(Path.GetDirectoryName(_statePath)!);
-		var json = _serializationService.SerializeAppState(_projects, _recentColors.Select(x => x.Hex).ToList(), Width, Height);
+		var json = _serializationService.SerializeAppState(_projects, _recentColors.Select(x => x.Hex).ToList(), Width, Height, LeftPaneColumn.Width.Value);
 		File.WriteAllText(_statePath, json);
 	}
 
@@ -351,6 +352,10 @@ public partial class MainWindow : Window
 		var state = _serializationService.DeserializeAppState(File.ReadAllText(_statePath));
 		if (state.WindowWidth > 200) Width = state.WindowWidth;
 		if (state.WindowHeight > 200) Height = state.WindowHeight;
+		if (state.LeftColumnWidth >= LeftPaneColumn.MinWidth && state.LeftColumnWidth <= Width - RightPaneColumn.MinWidth)
+		{
+			LeftPaneColumn.Width = new GridLength(state.LeftColumnWidth, GridUnitType.Pixel);
+		}
 		_projects.Clear();
 		foreach (var p in state.Projects) _projects.Add(p);
 		_recentColors.Clear();
@@ -366,6 +371,7 @@ public partial class MainWindow : Window
 		_hotkeyService?.Dispose();
 	}
 
+	private void ColumnSplitter_DragCompleted(object sender, DragCompletedEventArgs e) => SaveState();
 
 	private sealed class SlotSwatchViewModel
 	{
@@ -376,13 +382,5 @@ public partial class MainWindow : Window
 		public SolidColorBrush GrayBrush { get; init; } = WpfBrushes.Transparent;
 		public SolidColorBrush EditableTextBrush { get; init; } = WpfBrushes.White;
 		public SolidColorBrush GrayTextBrush { get; init; } = WpfBrushes.White;
-	}
-
-	private sealed class AppState
-	{
-		public List<ColorProject> Projects { get; set; } = [];
-		public List<string> RecentHex { get; set; } = [];
-		public double WindowWidth { get; set; }
-		public double WindowHeight { get; set; }
 	}
 }
