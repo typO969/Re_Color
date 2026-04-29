@@ -15,8 +15,10 @@ public enum SamplingEndReason
 public partial class PickerOverlay : Window
 {
 	private readonly DispatcherTimer _timer = new();
+	private Services.GlobalMouseHookService? _mouseHook;
 	private PickedColor? _currentColor;
 	private bool _mouseOverOverlay;
+	private bool _samplingActive;
 
 	public event EventHandler<PickedColor>? ColorSampled;
 	public event EventHandler<SamplingEndReason>? SamplingEnded;
@@ -32,10 +34,20 @@ public partial class PickerOverlay : Window
 
 	public void ShowForSampling()
 	{
+		_samplingActive = true;
+		EnsureMouseHook();
 		if (!IsVisible) Show();
 		Activate();
 		RefreshPreview();
 		_timer.Start();
+	}
+
+	private void EnsureMouseHook()
+	{
+		_mouseHook ??= new Services.GlobalMouseHookService();
+		_mouseHook.LeftButtonDown -= OnGlobalLeftButtonDown;
+		_mouseHook.LeftButtonDown += OnGlobalLeftButtonDown;
+		_mouseHook.Start();
 	}
 
 	private void RefreshPreview()
@@ -66,12 +78,9 @@ public partial class PickerOverlay : Window
 	protected override void OnMouseLeftButtonDown(System.Windows.Input.MouseButtonEventArgs e)
 	{
 		base.OnMouseLeftButtonDown(e);
+		if (!_samplingActive || !_mouseOverOverlay) return;
 		if (_currentColor == null) return;
-		ColorSampled?.Invoke(this, _currentColor);
-		StatusText.Text = $"Sampled {_currentColor.Hex}";
-		_timer.Stop();
-		Hide();
-		SamplingEnded?.Invoke(this, SamplingEndReason.Picked);
+		CompleteSampling(_currentColor);
 	}
 
 	private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -79,9 +88,46 @@ public partial class PickerOverlay : Window
 		if (e.Key == System.Windows.Input.Key.Escape)
 		{
 			e.Handled = true;
-			_timer.Stop();
-			Hide();
+			EndSampling();
 			SamplingEnded?.Invoke(this, SamplingEndReason.Canceled);
 		}
+	}
+
+	private void OnGlobalLeftButtonDown(object? sender, Services.GlobalMouseLeftButtonDownEventArgs e)
+	{
+		if (!_samplingActive) return;
+		e.Handled = true;
+
+		Dispatcher.Invoke(() =>
+		{
+			if (!_samplingActive) return;
+			var color = Services.ScreenColorService.GetColorAt(e.ScreenX, e.ScreenY);
+			var picked = new PickedColor(color);
+			UpdateColor(picked);
+			CompleteSampling(picked);
+		});
+	}
+
+	private void CompleteSampling(PickedColor picked)
+	{
+		ColorSampled?.Invoke(this, picked);
+		StatusText.Text = $"Sampled {picked.Hex}";
+		EndSampling();
+		SamplingEnded?.Invoke(this, SamplingEndReason.Picked);
+	}
+
+	private void EndSampling()
+	{
+		_samplingActive = false;
+		_timer.Stop();
+		_mouseHook?.Stop();
+		Hide();
+	}
+
+	protected override void OnClosed(EventArgs e)
+	{
+		base.OnClosed(e);
+		_mouseHook?.Dispose();
+		_mouseHook = null;
 	}
 }
