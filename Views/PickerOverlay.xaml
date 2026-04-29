@@ -9,9 +9,10 @@
    ResizeMode="NoResize"
    ShowInTaskbar="False"
    Topmost="True"
-   WindowStyle="None">
+   WindowStyle="None"
+   AllowsTransparency="True">
 
-   <Border Padding="12" CornerRadius="10,10,10,10" UseLayoutRounding="False">
+   <Border Padding="12" CornerRadius="12" Background="#222222" UseLayoutRounding="False">
       <StackPanel>
          <TextBlock
             x:Name="HexText"
