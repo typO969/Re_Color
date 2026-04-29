@@ -23,6 +23,7 @@ public partial class PickerOverlay : Window
 
 	public event EventHandler<PickedColor>? ColorSampled;
 	public event EventHandler<SamplingEndReason>? SamplingEnded;
+	public bool IsSampling => _timer.IsEnabled;
 
 	public PickerOverlay()
 	{
@@ -50,6 +51,8 @@ public partial class PickerOverlay : Window
 		_mouseHook.LeftButtonDown += OnGlobalLeftButtonDown;
 		_mouseHook.Start();
 	}
+
+	public void StopSampling() => EndSampling();
 
 	private void RefreshPreview()
 	{
