@@ -6,6 +6,12 @@ using WinForms = System.Windows.Forms;
 
 namespace Re_Color.Views;
 
+public enum SamplingEndReason
+{
+	Picked,
+	Canceled
+}
+
 public partial class PickerOverlay : Window
 {
 	private readonly DispatcherTimer _timer = new();
@@ -13,6 +19,7 @@ public partial class PickerOverlay : Window
 	private bool _mouseOverOverlay;
 
 	public event EventHandler<PickedColor>? ColorSampled;
+	public event EventHandler<SamplingEndReason>? SamplingEnded;
 
 	public PickerOverlay()
 	{
@@ -64,14 +71,17 @@ public partial class PickerOverlay : Window
 		StatusText.Text = $"Sampled {_currentColor.Hex}";
 		_timer.Stop();
 		Hide();
+		SamplingEnded?.Invoke(this, SamplingEndReason.Picked);
 	}
 
 	private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
 	{
 		if (e.Key == System.Windows.Input.Key.Escape)
 		{
+			e.Handled = true;
 			_timer.Stop();
 			Hide();
+			SamplingEnded?.Invoke(this, SamplingEndReason.Canceled);
 		}
 	}
 }

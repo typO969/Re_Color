@@ -68,6 +68,9 @@ public partial class MainWindow : Window
 		_overlay ??= new Views.PickerOverlay();
 		_overlay.ColorSampled -= Overlay_ColorSampled;
 		_overlay.ColorSampled += Overlay_ColorSampled;
+		_overlay.SamplingEnded -= Overlay_SamplingEnded;
+		_overlay.SamplingEnded += Overlay_SamplingEnded;
+		Hide();
 		_overlay.ShowForSampling();
 	}
 
@@ -78,6 +81,17 @@ public partial class MainWindow : Window
 		{
 			ApplyColorToActiveSlot(picked.Hex);
 			_activeSlot = -1;
+		}
+		Show();
+		Activate();
+	}
+
+	private void Overlay_SamplingEnded(object? sender, Views.SamplingEndReason reason)
+	{
+		if (reason == Views.SamplingEndReason.Canceled)
+		{
+			Show();
+			Activate();
 		}
 	}
 
