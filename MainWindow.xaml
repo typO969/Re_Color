@@ -50,10 +50,14 @@
             <DockPanel>
                <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8" Orientation="Horizontal">
                   <Button Width="90" Margin="0,0,8,0" Click="AddProject_Click" Content="New Project" />
+                  <Button Width="110" Margin="0,0,8,0" Click="RemoveProject_Click" Content="Remove Project" />
                   <ComboBox x:Name="SortCombo" Width="140" SelectionChanged="SortCombo_SelectionChanged">
                      <ComboBoxItem IsSelected="True" Content="Sort: Date" />
                      <ComboBoxItem Content="Sort: Name" />
                   </ComboBox>
+                  <Button Width="70" Margin="8,0,0,0" Click="ImportProjects_Click" Content="Import" />
+                  <Button Width="70" Margin="8,0,0,0" Click="ExportProjects_Click" Content="Export" />
+                  <Button Width="100" Margin="8,0,0,0" Click="ExportAse_Click" Content="Export ASE" />
                </StackPanel>
                <ListBox x:Name="ProjectsList" DisplayMemberPath="DisplayLine" SelectionChanged="ProjectsList_SelectionChanged" />
             </DockPanel>
@@ -97,7 +101,45 @@
                <TextBlock HorizontalAlignment="Center" Text="Accent 2 (Dark)" />
             </UniformGrid>
 
-            <UniformGrid x:Name="SlotsGrid" Grid.Row="2" Columns="5" />
+            <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+               <ItemsControl x:Name="SlotsItemsControl">
+                  <ItemsControl.ItemsPanel>
+                     <ItemsPanelTemplate>
+                        <WrapPanel />
+                     </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                     <DataTemplate>
+                        <StackPanel MinWidth="180" MaxWidth="260" Margin="0,0,8,8">
+                           <Border
+                              Height="110"
+                              Margin="1"
+                              Background="{Binding EditableBrush}"
+                              ToolTip="Right-click to Add/Remove; drag recent colors here"
+                              Tag="{Binding Index}"
+                              AllowDrop="True"
+                              Loaded="EditableSwatch_Loaded"
+                              Drop="Slot_Drop">
+                              <TextBlock
+                                 Margin="8,10,8,0"
+                                 FontSize="21"
+                                 FontWeight="Bold"
+                                 Foreground="{Binding EditableTextBrush}"
+                                 Text="{Binding EditableHex}" />
+                           </Border>
+                           <Border Height="110" Margin="1" Background="{Binding GrayBrush}" ToolTip="Calculated grayscale">
+                              <TextBlock
+                                 Margin="8,10,8,0"
+                                 FontSize="21"
+                                 FontWeight="Bold"
+                                 Foreground="{Binding GrayTextBrush}"
+                                 Text="{Binding GrayHex}" />
+                           </Border>
+                        </StackPanel>
+                     </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+               </ItemsControl>
+            </ScrollViewer>
          </Grid>
       </Grid>
    </Grid>
