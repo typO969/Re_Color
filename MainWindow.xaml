@@ -49,10 +49,14 @@
             <DockPanel>
                <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8" Orientation="Horizontal">
                   <Button Width="90" Margin="0,0,8,0" Click="AddProject_Click" Content="New Project" />
+                  <Button Width="110" Margin="0,0,8,0" Click="RemoveProject_Click" Content="Remove Project" />
                   <ComboBox x:Name="SortCombo" Width="140" SelectionChanged="SortCombo_SelectionChanged">
                      <ComboBoxItem IsSelected="True" Content="Sort: Date" />
                      <ComboBoxItem Content="Sort: Name" />
                   </ComboBox>
+                  <Button Width="70" Margin="8,0,0,0" Click="ImportProjects_Click" Content="Import" />
+                  <Button Width="70" Margin="8,0,0,0" Click="ExportProjects_Click" Content="Export" />
+                  <Button Width="100" Margin="8,0,0,0" Click="ExportAse_Click" Content="Export ASE" />
                </StackPanel>
                <ListBox x:Name="ProjectsList" DisplayMemberPath="DisplayLine" SelectionChanged="ProjectsList_SelectionChanged" />
             </DockPanel>
