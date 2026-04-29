@@ -1,18 +1,28 @@
 ﻿using System.Windows;
 using System.Windows.Media;
+using MediaColor = System.Windows.Media.Color;
 using System.Windows.Threading;
 using Re_Color.Models;
 using WinForms = System.Windows.Forms;
 
 namespace Re_Color.Views;
 
+public enum SamplingEndReason
+{
+	Picked,
+	Canceled
+}
+
 public partial class PickerOverlay : Window
 {
 	private readonly DispatcherTimer _timer = new();
+	private Services.GlobalMouseHookService? _mouseHook;
 	private PickedColor? _currentColor;
 	private bool _mouseOverOverlay;
+	private bool _samplingActive;
 
 	public event EventHandler<PickedColor>? ColorSampled;
+	public event EventHandler<SamplingEndReason>? SamplingEnded;
 	public bool IsSampling => _timer.IsEnabled;
 
 	public PickerOverlay()
@@ -26,17 +36,23 @@ public partial class PickerOverlay : Window
 
 	public void ShowForSampling()
 	{
+		_samplingActive = true;
+		EnsureMouseHook();
 		if (!IsVisible) Show();
 		Activate();
 		RefreshPreview();
 		_timer.Start();
 	}
 
-	public void StopSampling()
+	private void EnsureMouseHook()
 	{
-		_timer.Stop();
-		if (IsVisible) Hide();
+		_mouseHook ??= new Services.GlobalMouseHookService();
+		_mouseHook.LeftButtonDown -= OnGlobalLeftButtonDown;
+		_mouseHook.LeftButtonDown += OnGlobalLeftButtonDown;
+		_mouseHook.Start();
 	}
+
+	public void StopSampling() => EndSampling();
 
 	private void RefreshPreview()
 	{
@@ -47,10 +63,34 @@ public partial class PickerOverlay : Window
 		var source = PresentationSource.FromVisual(this);
 		if (source?.CompositionTarget != null)
 		{
-			var transform = source.CompositionTarget.TransformFromDevice;
-			var dipPoint = transform.Transform(new System.Windows.Point(position.X, position.Y));
-			Left = dipPoint.X + 40;
-			Top = dipPoint.Y + 40;
+			const double offset = 10;
+			var transformFromDevice = source.CompositionTarget.TransformFromDevice;
+			var transformToDevice = source.CompositionTarget.TransformToDevice;
+
+			var overlaySizeInDevice = transformToDevice.Transform(new System.Windows.Vector(ActualWidth, ActualHeight));
+			var overlayWidth = overlaySizeInDevice.X;
+			var overlayHeight = overlaySizeInDevice.Y;
+
+			var workingArea = WinForms.Screen.FromPoint(position).WorkingArea;
+			double leftInDevice = position.X + offset;
+			double topInDevice = position.Y + offset;
+
+			if (leftInDevice + overlayWidth > workingArea.Right)
+			{
+				leftInDevice = position.X - offset - overlayWidth;
+			}
+
+			if (topInDevice + overlayHeight > workingArea.Bottom)
+			{
+				topInDevice = position.Y - offset - overlayHeight;
+			}
+
+			leftInDevice = Math.Clamp(leftInDevice, workingArea.Left, workingArea.Right - overlayWidth);
+			topInDevice = Math.Clamp(topInDevice, workingArea.Top, workingArea.Bottom - overlayHeight);
+
+			var dipPoint = transformFromDevice.Transform(new System.Windows.Point(leftInDevice, topInDevice));
+			Left = dipPoint.X;
+			Top = dipPoint.Y;
 		}
 		UpdateColor(picked);
 	}
@@ -60,23 +100,69 @@ public partial class PickerOverlay : Window
 		_currentColor = picked;
 		HexText.Text = picked.Hex;
 		RgbText.Text = picked.Rgb;
-		Background = new SolidColorBrush(picked.Color);
+		ColorPreviewRegion.Fill = new SolidColorBrush(picked.Color);
+		var gray = ToGrayscale(picked.Color);
+		GrayPreviewRegion.Fill = new SolidColorBrush(gray);
 	}
 
 	protected override void OnMouseLeftButtonDown(System.Windows.Input.MouseButtonEventArgs e)
 	{
 		base.OnMouseLeftButtonDown(e);
+		if (!_samplingActive || !_mouseOverOverlay) return;
 		if (_currentColor == null) return;
-		ColorSampled?.Invoke(this, _currentColor);
-		StatusText.Text = $"Sampled {_currentColor.Hex}";
-		StopSampling();
+		CompleteSampling(_currentColor);
+	}
+
+	private static MediaColor ToGrayscale(MediaColor color)
+	{
+		var luminance = (byte)Math.Round((0.299 * color.R) + (0.587 * color.G) + (0.114 * color.B));
+		return MediaColor.FromRgb(luminance, luminance, luminance);
 	}
 
 	private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
 	{
 		if (e.Key == System.Windows.Input.Key.Escape)
 		{
-			StopSampling();
+			e.Handled = true;
+			EndSampling();
+			SamplingEnded?.Invoke(this, SamplingEndReason.Canceled);
 		}
+	}
+
+	private void OnGlobalLeftButtonDown(object? sender, Services.GlobalMouseLeftButtonDownEventArgs e)
+	{
+		if (!_samplingActive) return;
+		e.Handled = true;
+
+		Dispatcher.Invoke(() =>
+		{
+			if (!_samplingActive) return;
+			var color = Services.ScreenColorService.GetColorAt(e.ScreenX, e.ScreenY);
+			var picked = new PickedColor(color);
+			UpdateColor(picked);
+			CompleteSampling(picked);
+		});
+	}
+
+	private void CompleteSampling(PickedColor picked)
+	{
+		ColorSampled?.Invoke(this, picked);
+		EndSampling();
+		SamplingEnded?.Invoke(this, SamplingEndReason.Picked);
+	}
+
+	private void EndSampling()
+	{
+		_samplingActive = false;
+		_timer.Stop();
+		_mouseHook?.Stop();
+		Hide();
+	}
+
+	protected override void OnClosed(EventArgs e)
+	{
+		base.OnClosed(e);
+		_mouseHook?.Dispose();
+		_mouseHook = null;
 	}
 }

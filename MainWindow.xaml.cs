@@ -1,9 +1,9 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
-using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
@@ -21,7 +21,9 @@ using WpfKeyEventArgs = System.Windows.Input.KeyEventArgs;
 using WpfMenuItem = System.Windows.Controls.MenuItem;
 using WpfMouseButtonEventArgs = System.Windows.Input.MouseButtonEventArgs;
 using WpfMouseEventArgs = System.Windows.Input.MouseEventArgs;
+using Microsoft.Win32;
 using Re_Color.Models;
+using Re_Color.Services;
 using WinForms = System.Windows.Forms;
 
 namespace Re_Color;
@@ -30,12 +32,14 @@ public partial class MainWindow : Window
 {
 	private readonly ObservableCollection<ColorProject> _projects = [];
 	private readonly ObservableCollection<PickedColor> _recentColors = [];
+	private readonly ObservableCollection<SlotSwatchViewModel> _slotSwatches = [];
 	private Services.HotkeyService? _hotkeyService;
 	private Views.PickerOverlay? _overlay;
 	private WinForms.NotifyIcon? _trayIcon;
 	private int _activeSlot = -1;
 	private PickedColor? _selectedRecentColor;
 	private readonly string _statePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Re_Color", "state.json");
+	private readonly ProjectSerializationService _serializationService = new();
 
 	public MainWindow()
 	{
@@ -64,6 +68,7 @@ public partial class MainWindow : Window
 		}
 		ProjectsList.SelectedIndex = Math.Max(0, ProjectsList.SelectedIndex);
 		RenderRecents();
+		SlotsItemsControl.ItemsSource = _slotSwatches;
 	}
 
 	private void HotkeyService_HotkeyPressed(object? sender, EventArgs e) => OpenSamplingOverlay();
@@ -118,6 +123,9 @@ public partial class MainWindow : Window
 		_overlay ??= new Views.PickerOverlay();
 		_overlay.ColorSampled -= Overlay_ColorSampled;
 		_overlay.ColorSampled += Overlay_ColorSampled;
+		_overlay.SamplingEnded -= Overlay_SamplingEnded;
+		_overlay.SamplingEnded += Overlay_SamplingEnded;
+		Hide();
 		_overlay.ShowForSampling();
 	}
 
@@ -128,6 +136,17 @@ public partial class MainWindow : Window
 		{
 			ApplyColorToActiveSlot(picked.Hex);
 			_activeSlot = -1;
+		}
+		Show();
+		Activate();
+	}
+
+	private void Overlay_SamplingEnded(object? sender, Views.SamplingEndReason reason)
+	{
+		if (reason == Views.SamplingEndReason.Canceled)
+		{
+			Show();
+			Activate();
 		}
 	}
 
@@ -172,41 +191,32 @@ public partial class MainWindow : Window
 
 	private void RenderSlots(ColorProject project)
 	{
-		SlotsGrid.Children.Clear();
+		_slotSwatches.Clear();
 		for (int i = 0; i < project.Slots.Count; i++)
 		{
 			var slot = project.Slots[i];
 			var colorHex = slot.Hex ?? (i % 2 == 0 ? "#FFFFFF" : "#000000");
 			var col = (MediaColor)WpfColorConverter.ConvertFromString(colorHex);
 			var gray = ToGray(col);
-			var top = SwatchBlock(colorHex, col, i, true);
-			var bottom = SwatchBlock(ToHex(gray), gray, i, false);
-			var panel = new StackPanel();
-			panel.Children.Add(top);
-			panel.Children.Add(bottom);
-			SlotsGrid.Children.Add(panel);
+			_slotSwatches.Add(new SlotSwatchViewModel
+			{
+				Index = i,
+				EditableHex = colorHex,
+				GrayHex = ToHex(gray),
+				EditableBrush = new SolidColorBrush(col),
+				GrayBrush = new SolidColorBrush(gray),
+				EditableTextBrush = new SolidColorBrush(GetReadableText(col)),
+				GrayTextBrush = new SolidColorBrush(GetReadableText(gray))
+			});
 		}
 	}
 
-	private Border SwatchBlock(string hex, MediaColor color, int index, bool editable)
+	private void EditableSwatch_Loaded(object sender, RoutedEventArgs e)
 	{
-		var textColor = GetReadableText(color);
-		var border = new Border
+		if (sender is Border b && b.Tag is int index)
 		{
-			Height = 110,
-			Margin = new Thickness(1),
-			Background = new SolidColorBrush(color),
-			Child = new TextBlock { Text = hex, Foreground = new SolidColorBrush(textColor), FontWeight = FontWeights.Bold, FontSize = 21, Margin = new Thickness(8, 10, 8, 0) },
-			ToolTip = editable ? "Right-click to Add/Remove; drag recent colors here" : "Calculated grayscale",
-			Tag = index,
-			AllowDrop = editable
-		};
-		if (editable)
-		{
-			border.ContextMenu = BuildSlotMenu(index);
-			border.Drop += Slot_Drop;
+			b.ContextMenu = BuildSlotMenu(index);
 		}
-		return border;
 	}
 
  private WpfContextMenu BuildSlotMenu(int index)
@@ -270,6 +280,50 @@ public partial class MainWindow : Window
 		ProjectsList.SelectedItem = p;
 		SaveState();
 	}
+	private void RemoveProject_Click(object sender, RoutedEventArgs e)
+	{
+		if (ProjectsList.SelectedItem is not ColorProject selected) return;
+		var result = MessageBox.Show($"Remove project '{selected.Name}'?", "Confirm remove", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+		if (result != MessageBoxResult.Yes) return;
+		var index = _projects.IndexOf(selected);
+		_projects.Remove(selected);
+		if (_projects.Count == 0)
+		{
+			_projects.Add(new ColorProject { Name = "Project 1" });
+			ProjectsList.SelectedIndex = 0;
+		}
+		else
+		{
+			ProjectsList.SelectedIndex = Math.Min(index, _projects.Count - 1);
+		}
+		SaveState();
+	}
+
+	private void ImportProjects_Click(object sender, RoutedEventArgs e)
+	{
+		var dialog = new OpenFileDialog { Filter = "Re_Color Project JSON (*.json)|*.json" };
+		if (dialog.ShowDialog() != true) return;
+		var imported = _serializationService.DeserializeProjects(File.ReadAllText(dialog.FileName));
+		_projects.Clear();
+		foreach (var project in imported) _projects.Add(project);
+		ProjectsList.SelectedIndex = _projects.Count > 0 ? 0 : -1;
+		SaveState();
+	}
+
+	private void ExportProjects_Click(object sender, RoutedEventArgs e)
+	{
+		var dialog = new SaveFileDialog { Filter = "Re_Color Project JSON (*.json)|*.json", FileName = "re-color-projects.json" };
+		if (dialog.ShowDialog() != true) return;
+		File.WriteAllText(dialog.FileName, _serializationService.SerializeProjects(_projects));
+	}
+
+	private void ExportAse_Click(object sender, RoutedEventArgs e)
+	{
+		var dialog = new SaveFileDialog { Filter = "Adobe Swatch Exchange (*.ase)|*.ase", FileName = "re-color-swatches.ase" };
+		if (dialog.ShowDialog() != true) return;
+		File.WriteAllBytes(dialog.FileName, _serializationService.CreateAseSwatch(_projects));
+	}
+
 	private void ProjectsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
 		if (ProjectsList.SelectedItem is not ColorProject p) return;
@@ -338,26 +392,24 @@ public partial class MainWindow : Window
 	private void SaveState()
 	{
 		Directory.CreateDirectory(Path.GetDirectoryName(_statePath)!);
-		var state = new AppState
-		{
-			Projects = _projects.ToList(),
-			RecentHex = _recentColors.Select(x => x.Hex).ToList(),
-			WindowWidth = Width,
-			WindowHeight = Height
-		};
-		File.WriteAllText(_statePath, JsonSerializer.Serialize(state));
+		var json = _serializationService.SerializeAppState(_projects, _recentColors.Select(x => x.Hex).ToList(), Width, Height, LeftPaneColumn.Width.Value);
+		File.WriteAllText(_statePath, json);
 	}
+
 	private void LoadState()
 	{
 		if (!File.Exists(_statePath)) return;
-		var state = JsonSerializer.Deserialize<AppState>(File.ReadAllText(_statePath));
-		if (state is null) return;
+		var state = _serializationService.DeserializeAppState(File.ReadAllText(_statePath));
 		if (state.WindowWidth > 200) Width = state.WindowWidth;
 		if (state.WindowHeight > 200) Height = state.WindowHeight;
+		if (state.LeftColumnWidth >= LeftPaneColumn.MinWidth && state.LeftColumnWidth <= Width - RightPaneColumn.MinWidth)
+		{
+			LeftPaneColumn.Width = new GridLength(state.LeftColumnWidth, GridUnitType.Pixel);
+		}
 		_projects.Clear();
 		foreach (var p in state.Projects) _projects.Add(p);
 		_recentColors.Clear();
-		foreach (var hex in state.RecentHex)
+		foreach (var hex in state.RecentHex.Where(x => !string.IsNullOrWhiteSpace(x)))
 		{
 			var col = (MediaColor)WpfColorConverter.ConvertFromString(hex);
 			_recentColors.Add(new PickedColor(col));
@@ -388,11 +440,16 @@ public partial class MainWindow : Window
 		Hide();
 	}
 
-	private sealed class AppState
+	private void ColumnSplitter_DragCompleted(object sender, DragCompletedEventArgs e) => SaveState();
+
+	private sealed class SlotSwatchViewModel
 	{
-		public List<ColorProject> Projects { get; set; } = [];
-		public List<string> RecentHex { get; set; } = [];
-		public double WindowWidth { get; set; }
-		public double WindowHeight { get; set; }
+		public int Index { get; init; }
+		public string EditableHex { get; init; } = string.Empty;
+		public string GrayHex { get; init; } = string.Empty;
+		public SolidColorBrush EditableBrush { get; init; } = WpfBrushes.Transparent;
+		public SolidColorBrush GrayBrush { get; init; } = WpfBrushes.Transparent;
+		public SolidColorBrush EditableTextBrush { get; init; } = WpfBrushes.White;
+		public SolidColorBrush GrayTextBrush { get; init; } = WpfBrushes.White;
 	}
 }

@@ -2,6 +2,11 @@ namespace Re_Color.Models;
 
 public sealed class ProjectColorSlot
 {
+	public ProjectColorSlot()
+	{
+		Role = "Primary";
+	}
+
 	public string Role { get; set; }
 	public string? Modifier { get; set; }
 	public string? Hex { get; set; }
