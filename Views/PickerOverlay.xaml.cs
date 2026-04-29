@@ -6,6 +6,12 @@ using WinForms = System.Windows.Forms;
 
 namespace Re_Color.Views;
 
+public enum SamplingEndReason
+{
+	Picked,
+	Canceled
+}
+
 public partial class PickerOverlay : Window
 {
 	private readonly DispatcherTimer _timer = new();
@@ -15,6 +21,7 @@ public partial class PickerOverlay : Window
 	private bool _samplingActive;
 
 	public event EventHandler<PickedColor>? ColorSampled;
+	public event EventHandler<SamplingEndReason>? SamplingEnded;
 
 	public PickerOverlay()
 	{
@@ -80,7 +87,9 @@ public partial class PickerOverlay : Window
 	{
 		if (e.Key == System.Windows.Input.Key.Escape)
 		{
+			e.Handled = true;
 			EndSampling();
+			SamplingEnded?.Invoke(this, SamplingEndReason.Canceled);
 		}
 	}
 
@@ -104,6 +113,7 @@ public partial class PickerOverlay : Window
 		ColorSampled?.Invoke(this, picked);
 		StatusText.Text = $"Sampled {picked.Hex}";
 		EndSampling();
+		SamplingEnded?.Invoke(this, SamplingEndReason.Picked);
 	}
 
 	private void EndSampling()
