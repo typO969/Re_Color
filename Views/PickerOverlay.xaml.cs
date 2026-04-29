@@ -40,10 +40,34 @@ public partial class PickerOverlay : Window
 		var source = PresentationSource.FromVisual(this);
 		if (source?.CompositionTarget != null)
 		{
-			var transform = source.CompositionTarget.TransformFromDevice;
-			var dipPoint = transform.Transform(new System.Windows.Point(position.X, position.Y));
-			Left = dipPoint.X + 40;
-			Top = dipPoint.Y + 40;
+			const double offset = 10;
+			var transformFromDevice = source.CompositionTarget.TransformFromDevice;
+			var transformToDevice = source.CompositionTarget.TransformToDevice;
+
+			var overlaySizeInDevice = transformToDevice.Transform(new System.Windows.Vector(ActualWidth, ActualHeight));
+			var overlayWidth = overlaySizeInDevice.X;
+			var overlayHeight = overlaySizeInDevice.Y;
+
+			var workingArea = WinForms.Screen.FromPoint(position).WorkingArea;
+			double leftInDevice = position.X + offset;
+			double topInDevice = position.Y + offset;
+
+			if (leftInDevice + overlayWidth > workingArea.Right)
+			{
+				leftInDevice = position.X - offset - overlayWidth;
+			}
+
+			if (topInDevice + overlayHeight > workingArea.Bottom)
+			{
+				topInDevice = position.Y - offset - overlayHeight;
+			}
+
+			leftInDevice = Math.Clamp(leftInDevice, workingArea.Left, workingArea.Right - overlayWidth);
+			topInDevice = Math.Clamp(topInDevice, workingArea.Top, workingArea.Bottom - overlayHeight);
+
+			var dipPoint = transformFromDevice.Transform(new System.Windows.Point(leftInDevice, topInDevice));
+			Left = dipPoint.X;
+			Top = dipPoint.Y;
 		}
 		UpdateColor(picked);
 	}
