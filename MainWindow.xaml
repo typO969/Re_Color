@@ -4,7 +4,7 @@
    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-   Title="Re Color"
+   Title="Re_Color"
    Width="1280"
    Height="760"
    Background="#161616"
@@ -18,9 +18,10 @@
       </Grid.RowDefinitions>
 
       <DockPanel Margin="0,0,0,10">
-         <TextBlock FontSize="20" FontWeight="SemiBold" Text="Re Color" />
-         <TextBlock Margin="14,4,0,0" Foreground="#A2A2A2" Text="Ctrl+Alt+C to sample, click swatch to copy" />
-      </DockPanel>
+         <TextBlock FontSize="20" FontWeight="SemiBold" Text="Re_Color" Width="114" FontFamily="Helvetica LT Std Black" />
+         <TextBlock Margin="14,4,0,0" Foreground="#A2A2A2" Text="Ctrl+Alt+C to sample, click swatch to copy" Width="231" />
+            <Button x:Name="butSample" HorizontalAlignment="Right" Width="100" Content="Re__Sample" MinWidth="50" MinHeight="22" UseLayoutRounding="False" FontSize="14" FontWeight="Bold"/>
+        </DockPanel>
 
       <Border
          Grid.Row="1"
@@ -72,10 +73,11 @@
                   <DatePicker x:Name="StartDatePicker" Width="140" Margin="6,0,0,0" SelectedDateChanged="ProjectMeta_Changed" />
                   <TextBlock Margin="12,0,0,0" VerticalAlignment="Center" Text="Due" />
                   <DatePicker x:Name="DueDatePicker" Width="140" Margin="6,0,0,0" SelectedDateChanged="ProjectMeta_Changed" />
+                        <Button x:Name="butSave" Width="100" HorizontalAlignment="Right" Margin="35,0,0,0" MinWidth="80" MinHeight="24" Content="Save Project"></Button>
                </StackPanel>
             </Border>
 
-            <UniformGrid Grid.Row="1" Margin="0,10,0,8" Columns="5">
+            <UniformGrid Grid.Row="1" Margin="0,10,0,8" Columns="5" VerticalAlignment="Bottom">
                <TextBlock HorizontalAlignment="Center" Text="Accent 1 (Light)" />
                <TextBlock HorizontalAlignment="Center" Text="Secondary (Links)" />
                <TextBlock HorizontalAlignment="Center" Text="Primary (Brand)" />

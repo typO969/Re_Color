@@ -1,3 +1,9 @@
 <Solution>
-  <Project Path="Re_Color.csproj" />
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+  </Configurations>
+  <Project Path="Re_Color.csproj">
+    <Platform Solution="*|x64" Project="x64" />
+  </Project>
 </Solution>
