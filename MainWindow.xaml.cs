@@ -115,7 +115,7 @@ public partial class MainWindow : Window
 			_trayIcon = null;
 		}
 
-		Application.Current.Shutdown();
+     System.Windows.Application.Current.Shutdown();
 	}
 
 	private void OpenSamplingOverlay()
@@ -283,7 +283,7 @@ public partial class MainWindow : Window
 	private void RemoveProject_Click(object sender, RoutedEventArgs e)
 	{
 		if (ProjectsList.SelectedItem is not ColorProject selected) return;
-		var result = MessageBox.Show($"Remove project '{selected.Name}'?", "Confirm remove", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+    var result = System.Windows.MessageBox.Show($"Remove project '{selected.Name}'?", "Confirm remove", MessageBoxButton.YesNo, MessageBoxImage.Warning);
 		if (result != MessageBoxResult.Yes) return;
 		var index = _projects.IndexOf(selected);
 		_projects.Remove(selected);
@@ -301,7 +301,7 @@ public partial class MainWindow : Window
 
 	private void ImportProjects_Click(object sender, RoutedEventArgs e)
 	{
-		var dialog = new OpenFileDialog { Filter = "Re_Color Project JSON (*.json)|*.json" };
+     var dialog = new Microsoft.Win32.OpenFileDialog { Filter = "Re_Color Project JSON (*.json)|*.json" };
 		if (dialog.ShowDialog() != true) return;
 		var imported = _serializationService.DeserializeProjects(File.ReadAllText(dialog.FileName));
 		_projects.Clear();
@@ -312,14 +312,14 @@ public partial class MainWindow : Window
 
 	private void ExportProjects_Click(object sender, RoutedEventArgs e)
 	{
-		var dialog = new SaveFileDialog { Filter = "Re_Color Project JSON (*.json)|*.json", FileName = "re-color-projects.json" };
+    var dialog = new Microsoft.Win32.SaveFileDialog { Filter = "Re_Color Project JSON (*.json)|*.json", FileName = "re-color-projects.json" };
 		if (dialog.ShowDialog() != true) return;
 		File.WriteAllText(dialog.FileName, _serializationService.SerializeProjects(_projects));
 	}
 
 	private void ExportAse_Click(object sender, RoutedEventArgs e)
 	{
-		var dialog = new SaveFileDialog { Filter = "Adobe Swatch Exchange (*.ase)|*.ase", FileName = "re-color-swatches.ase" };
+    var dialog = new Microsoft.Win32.SaveFileDialog { Filter = "Adobe Swatch Exchange (*.ase)|*.ase", FileName = "re-color-swatches.ase" };
 		if (dialog.ShowDialog() != true) return;
 		File.WriteAllBytes(dialog.FileName, _serializationService.CreateAseSwatch(_projects));
 	}
