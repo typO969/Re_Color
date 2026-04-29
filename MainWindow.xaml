@@ -85,7 +85,45 @@
                <TextBlock HorizontalAlignment="Center" Text="Accent 2 (Dark)" />
             </UniformGrid>
 
-            <UniformGrid x:Name="SlotsGrid" Grid.Row="2" Columns="5" />
+            <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+               <ItemsControl x:Name="SlotsItemsControl">
+                  <ItemsControl.ItemsPanel>
+                     <ItemsPanelTemplate>
+                        <WrapPanel />
+                     </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                     <DataTemplate>
+                        <StackPanel MinWidth="180" MaxWidth="260" Margin="0,0,8,8">
+                           <Border
+                              Height="110"
+                              Margin="1"
+                              Background="{Binding EditableBrush}"
+                              ToolTip="Right-click to Add/Remove; drag recent colors here"
+                              Tag="{Binding Index}"
+                              AllowDrop="True"
+                              Loaded="EditableSwatch_Loaded"
+                              Drop="Slot_Drop">
+                              <TextBlock
+                                 Margin="8,10,8,0"
+                                 FontSize="21"
+                                 FontWeight="Bold"
+                                 Foreground="{Binding EditableTextBrush}"
+                                 Text="{Binding EditableHex}" />
+                           </Border>
+                           <Border Height="110" Margin="1" Background="{Binding GrayBrush}" ToolTip="Calculated grayscale">
+                              <TextBlock
+                                 Margin="8,10,8,0"
+                                 FontSize="21"
+                                 FontWeight="Bold"
+                                 Foreground="{Binding GrayTextBrush}"
+                                 Text="{Binding GrayHex}" />
+                           </Border>
+                        </StackPanel>
+                     </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+               </ItemsControl>
+            </ScrollViewer>
          </Grid>
       </Grid>
    </Grid>
