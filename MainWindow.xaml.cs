@@ -5,12 +5,21 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Media3D;
 
 using MediaColor = System.Windows.Media.Color;
 using WpfBrushes = System.Windows.Media.Brushes;
 using WpfButton = System.Windows.Controls.Button;
 using WpfClipboard = System.Windows.Clipboard;
 using WpfColorConverter = System.Windows.Media.ColorConverter;
+using WpfContextMenu = System.Windows.Controls.ContextMenu;
+using WpfDataFormats = System.Windows.DataFormats;
+using WpfDragDropEffects = System.Windows.DragDropEffects;
+using WpfDragEventArgs = System.Windows.DragEventArgs;
+using WpfKeyEventArgs = System.Windows.Input.KeyEventArgs;
+using WpfMenuItem = System.Windows.Controls.MenuItem;
+using WpfMouseButtonEventArgs = System.Windows.Input.MouseButtonEventArgs;
+using WpfMouseEventArgs = System.Windows.Input.MouseEventArgs;
 using Re_Color.Models;
 
 namespace Re_Color;
@@ -97,10 +106,10 @@ public partial class MainWindow : Window
 		}
 	}
 
-	private void RecentColor_MouseMove(object sender, MouseEventArgs e)
+  private void RecentColor_MouseMove(object sender, WpfMouseEventArgs e)
 	{
 		if (e.LeftButton != MouseButtonState.Pressed || sender is not WpfButton b || b.Tag is not PickedColor color) return;
-		DragDrop.DoDragDrop(b, color.Hex, DragDropEffects.Copy);
+    DragDrop.DoDragDrop(b, color.Hex, WpfDragDropEffects.Copy);
 	}
 
 	private void ApplyColorToActiveSlot(string hex)
@@ -150,12 +159,12 @@ public partial class MainWindow : Window
 		return border;
 	}
 
-	private ContextMenu BuildSlotMenu(int index)
+ private WpfContextMenu BuildSlotMenu(int index)
 	{
-		var menu = new ContextMenu();
-		var add = new MenuItem { Header = "Add" };
+    var menu = new WpfContextMenu();
+		var add = new WpfMenuItem { Header = "Add" };
 		add.Click += (_, _) => AddToSlot(index);
-		var remove = new MenuItem { Header = "Remove" };
+      var remove = new WpfMenuItem { Header = "Remove" };
 		remove.Click += (_, _) => RemoveFromSlot(index);
 		menu.Items.Add(add);
 		menu.Items.Add(remove);
@@ -182,10 +191,10 @@ public partial class MainWindow : Window
 		SaveState();
 	}
 
-	private void Slot_Drop(object sender, DragEventArgs e)
+   private void Slot_Drop(object sender, WpfDragEventArgs e)
 	{
-		if (sender is not Border b || b.Tag is not int index || !e.Data.GetDataPresent(DataFormats.StringFormat)) return;
-		var hex = e.Data.GetData(DataFormats.StringFormat) as string;
+    if (sender is not Border b || b.Tag is not int index || !e.Data.GetDataPresent(WpfDataFormats.StringFormat)) return;
+		var hex = e.Data.GetData(WpfDataFormats.StringFormat) as string;
 		if (string.IsNullOrWhiteSpace(hex)) return;
 		_activeSlot = index;
 		ApplyColorToActiveSlot(hex);
@@ -243,7 +252,7 @@ public partial class MainWindow : Window
 		SaveState();
 	}
 
-	private void MainWindow_PreviewKeyDown(object sender, KeyEventArgs e)
+   private void MainWindow_PreviewKeyDown(object sender, WpfKeyEventArgs e)
 	{
 		if (e.Key == Key.Escape)
 		{
@@ -251,9 +260,9 @@ public partial class MainWindow : Window
 			_activeSlot = -1;
 		}
 	}
-	private void MainWindow_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+  private void MainWindow_PreviewMouseDown(object sender, WpfMouseButtonEventArgs e)
 	{
-		if (e.OriginalSource is not DependencyObject d || FindAncestor<Button>(d) is null)
+     if (e.OriginalSource is not DependencyObject d || FindAncestor<WpfButton>(d) is null)
 		{
 			_selectedRecentColor = null;
 		}
@@ -263,7 +272,15 @@ public partial class MainWindow : Window
 		while (d != null)
 		{
 			if (d is T t) return t;
-			d = VisualTreeHelper.GetParent(d);
+
+			if (d is Visual or Visual3D)
+			{
+				d = VisualTreeHelper.GetParent(d);
+			}
+			else
+			{
+				d = LogicalTreeHelper.GetParent(d);
+			}
 		}
 		return null;
 	}

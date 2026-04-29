@@ -41,7 +41,7 @@ public partial class PickerOverlay : Window
 		if (source?.CompositionTarget != null)
 		{
 			var transform = source.CompositionTarget.TransformFromDevice;
-			var dipPoint = transform.Transform(new Point(position.X, position.Y));
+			var dipPoint = transform.Transform(new System.Windows.Point(position.X, position.Y));
 			Left = dipPoint.X + 40;
 			Top = dipPoint.Y + 40;
 		}
