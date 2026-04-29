@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -20,7 +19,9 @@ using WpfKeyEventArgs = System.Windows.Input.KeyEventArgs;
 using WpfMenuItem = System.Windows.Controls.MenuItem;
 using WpfMouseButtonEventArgs = System.Windows.Input.MouseButtonEventArgs;
 using WpfMouseEventArgs = System.Windows.Input.MouseEventArgs;
+using Microsoft.Win32;
 using Re_Color.Models;
+using Re_Color.Services;
 
 namespace Re_Color;
 
@@ -33,6 +34,7 @@ public partial class MainWindow : Window
 	private int _activeSlot = -1;
 	private PickedColor? _selectedRecentColor;
 	private readonly string _statePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Re_Color", "state.json");
+	private readonly ProjectSerializationService _serializationService = new();
 
 	public MainWindow()
 	{
@@ -220,6 +222,50 @@ public partial class MainWindow : Window
 		ProjectsList.SelectedItem = p;
 		SaveState();
 	}
+	private void RemoveProject_Click(object sender, RoutedEventArgs e)
+	{
+		if (ProjectsList.SelectedItem is not ColorProject selected) return;
+		var result = MessageBox.Show($"Remove project '{selected.Name}'?", "Confirm remove", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+		if (result != MessageBoxResult.Yes) return;
+		var index = _projects.IndexOf(selected);
+		_projects.Remove(selected);
+		if (_projects.Count == 0)
+		{
+			_projects.Add(new ColorProject { Name = "Project 1" });
+			ProjectsList.SelectedIndex = 0;
+		}
+		else
+		{
+			ProjectsList.SelectedIndex = Math.Min(index, _projects.Count - 1);
+		}
+		SaveState();
+	}
+
+	private void ImportProjects_Click(object sender, RoutedEventArgs e)
+	{
+		var dialog = new OpenFileDialog { Filter = "Re_Color Project JSON (*.json)|*.json" };
+		if (dialog.ShowDialog() != true) return;
+		var imported = _serializationService.DeserializeProjects(File.ReadAllText(dialog.FileName));
+		_projects.Clear();
+		foreach (var project in imported) _projects.Add(project);
+		ProjectsList.SelectedIndex = _projects.Count > 0 ? 0 : -1;
+		SaveState();
+	}
+
+	private void ExportProjects_Click(object sender, RoutedEventArgs e)
+	{
+		var dialog = new SaveFileDialog { Filter = "Re_Color Project JSON (*.json)|*.json", FileName = "re-color-projects.json" };
+		if (dialog.ShowDialog() != true) return;
+		File.WriteAllText(dialog.FileName, _serializationService.SerializeProjects(_projects));
+	}
+
+	private void ExportAse_Click(object sender, RoutedEventArgs e)
+	{
+		var dialog = new SaveFileDialog { Filter = "Adobe Swatch Exchange (*.ase)|*.ase", FileName = "re-color-swatches.ase" };
+		if (dialog.ShowDialog() != true) return;
+		File.WriteAllBytes(dialog.FileName, _serializationService.CreateAseSwatch(_projects));
+	}
+
 	private void ProjectsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
 		if (ProjectsList.SelectedItem is not ColorProject p) return;
@@ -288,26 +334,20 @@ public partial class MainWindow : Window
 	private void SaveState()
 	{
 		Directory.CreateDirectory(Path.GetDirectoryName(_statePath)!);
-		var state = new AppState
-		{
-			Projects = _projects.ToList(),
-			RecentHex = _recentColors.Select(x => x.Hex).ToList(),
-			WindowWidth = Width,
-			WindowHeight = Height
-		};
-		File.WriteAllText(_statePath, JsonSerializer.Serialize(state));
+		var json = _serializationService.SerializeAppState(_projects, _recentColors.Select(x => x.Hex).ToList(), Width, Height);
+		File.WriteAllText(_statePath, json);
 	}
+
 	private void LoadState()
 	{
 		if (!File.Exists(_statePath)) return;
-		var state = JsonSerializer.Deserialize<AppState>(File.ReadAllText(_statePath));
-		if (state is null) return;
+		var state = _serializationService.DeserializeAppState(File.ReadAllText(_statePath));
 		if (state.WindowWidth > 200) Width = state.WindowWidth;
 		if (state.WindowHeight > 200) Height = state.WindowHeight;
 		_projects.Clear();
 		foreach (var p in state.Projects) _projects.Add(p);
 		_recentColors.Clear();
-		foreach (var hex in state.RecentHex)
+		foreach (var hex in state.RecentHex.Where(x => !string.IsNullOrWhiteSpace(x)))
 		{
 			var col = (MediaColor)WpfColorConverter.ConvertFromString(hex);
 			_recentColors.Add(new PickedColor(col));
@@ -317,13 +357,5 @@ public partial class MainWindow : Window
 	{
 		SaveState();
 		_hotkeyService?.Dispose();
-	}
-
-	private sealed class AppState
-	{
-		public List<ColorProject> Projects { get; set; } = [];
-		public List<string> RecentHex { get; set; } = [];
-		public double WindowWidth { get; set; }
-		public double WindowHeight { get; set; }
 	}
 }
