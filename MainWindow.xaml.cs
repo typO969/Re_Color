@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
@@ -21,6 +22,7 @@ using WpfMenuItem = System.Windows.Controls.MenuItem;
 using WpfMouseButtonEventArgs = System.Windows.Input.MouseButtonEventArgs;
 using WpfMouseEventArgs = System.Windows.Input.MouseEventArgs;
 using Re_Color.Models;
+using WinForms = System.Windows.Forms;
 
 namespace Re_Color;
 
@@ -30,6 +32,7 @@ public partial class MainWindow : Window
 	private readonly ObservableCollection<PickedColor> _recentColors = [];
 	private Services.HotkeyService? _hotkeyService;
 	private Views.PickerOverlay? _overlay;
+	private WinForms.NotifyIcon? _trayIcon;
 	private int _activeSlot = -1;
 	private PickedColor? _selectedRecentColor;
 	private readonly string _statePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Re_Color", "state.json");
@@ -38,6 +41,7 @@ public partial class MainWindow : Window
 	{
 		InitializeComponent();
 		Loaded += MainWindow_Loaded;
+		Closing += MainWindow_Closing;
 		Closed += MainWindow_Closed;
 		PreviewKeyDown += MainWindow_PreviewKeyDown;
 		PreviewMouseDown += MainWindow_PreviewMouseDown;
@@ -51,6 +55,7 @@ public partial class MainWindow : Window
 		_hotkeyService.Register();
 		butSample.Click += (_, _) => OpenSamplingOverlay();
 		butSave.Click += (_, _) => SaveState();
+		InitializeTrayIcon();
 		LoadState();
 		ProjectsList.ItemsSource = _projects;
 		if (_projects.Count == 0)
@@ -62,6 +67,51 @@ public partial class MainWindow : Window
 	}
 
 	private void HotkeyService_HotkeyPressed(object? sender, EventArgs e) => OpenSamplingOverlay();
+
+	private void InitializeTrayIcon()
+	{
+		_trayIcon = new WinForms.NotifyIcon
+		{
+			Icon = System.Drawing.SystemIcons.Application,
+			Text = "Re_Color",
+			Visible = true
+		};
+
+		var menu = new WinForms.ContextMenuStrip();
+		menu.Items.Add("Show", null, (_, _) => ShowFromTray());
+		menu.Items.Add("Exit", null, (_, _) => ExitApplication());
+		_trayIcon.ContextMenuStrip = menu;
+		_trayIcon.DoubleClick += (_, _) => ShowFromTray();
+	}
+
+	private void ShowFromTray()
+	{
+		Show();
+		WindowState = WindowState.Normal;
+		Activate();
+	}
+
+	private void ExitApplication()
+	{
+		if (_overlay?.IsSampling == true)
+		{
+			_overlay.StopSampling();
+		}
+
+		SaveState();
+		_hotkeyService?.Dispose();
+		_hotkeyService = null;
+		_overlay?.Close();
+		_overlay = null;
+		if (_trayIcon is not null)
+		{
+			_trayIcon.Visible = false;
+			_trayIcon.Dispose();
+			_trayIcon = null;
+		}
+
+		Application.Current.Shutdown();
+	}
 
 	private void OpenSamplingOverlay()
 	{
@@ -317,6 +367,25 @@ public partial class MainWindow : Window
 	{
 		SaveState();
 		_hotkeyService?.Dispose();
+		if (_trayIcon is not null)
+		{
+			_trayIcon.Visible = false;
+			_trayIcon.Dispose();
+			_trayIcon = null;
+		}
+	}
+
+	private void MainWindow_Closing(object? sender, CancelEventArgs e)
+	{
+		if (_trayIcon is null) return;
+
+		if (_overlay?.IsSampling == true)
+		{
+			_overlay.StopSampling();
+		}
+
+		e.Cancel = true;
+		Hide();
 	}
 
 	private sealed class AppState

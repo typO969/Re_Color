@@ -13,6 +13,7 @@ public partial class PickerOverlay : Window
 	private bool _mouseOverOverlay;
 
 	public event EventHandler<PickedColor>? ColorSampled;
+	public bool IsSampling => _timer.IsEnabled;
 
 	public PickerOverlay()
 	{
@@ -29,6 +30,12 @@ public partial class PickerOverlay : Window
 		Activate();
 		RefreshPreview();
 		_timer.Start();
+	}
+
+	public void StopSampling()
+	{
+		_timer.Stop();
+		if (IsVisible) Hide();
 	}
 
 	private void RefreshPreview()
@@ -62,16 +69,14 @@ public partial class PickerOverlay : Window
 		if (_currentColor == null) return;
 		ColorSampled?.Invoke(this, _currentColor);
 		StatusText.Text = $"Sampled {_currentColor.Hex}";
-		_timer.Stop();
-		Hide();
+		StopSampling();
 	}
 
 	private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
 	{
 		if (e.Key == System.Windows.Input.Key.Escape)
 		{
-			_timer.Stop();
-			Hide();
+			StopSampling();
 		}
 	}
 }
