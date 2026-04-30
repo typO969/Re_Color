@@ -40,6 +40,7 @@ public partial class MainWindow : Window
 	private PickedColor? _selectedRecentColor;
 	private readonly string _statePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Re_Color", "state.json");
 	private readonly ProjectSerializationService _serializationService = new();
+	private bool _isUpdatingProjectMeta;
 
 	public MainWindow()
 	{
@@ -327,13 +328,16 @@ public partial class MainWindow : Window
 	private void ProjectsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
 		if (ProjectsList.SelectedItem is not ColorProject p) return;
+		_isUpdatingProjectMeta = true;
 		ProjectNameBox.Text = p.Name;
 		StartDatePicker.SelectedDate = p.DateStarted;
 		DueDatePicker.SelectedDate = p.DateDue;
+		_isUpdatingProjectMeta = false;
 		RenderSlots(p);
 	}
 	private void ProjectMeta_Changed(object sender, RoutedEventArgs e)
 	{
+		if (_isUpdatingProjectMeta) return;
 		if (ProjectsList.SelectedItem is not ColorProject p) return;
 		p.Name = string.IsNullOrWhiteSpace(ProjectNameBox.Text) ? "Untitled" : ProjectNameBox.Text.Trim();
 		p.DateStarted = StartDatePicker.SelectedDate ?? DateTime.Today;
@@ -427,18 +431,7 @@ public partial class MainWindow : Window
 		}
 	}
 
-	private void MainWindow_Closing(object? sender, CancelEventArgs e)
-	{
-		if (_trayIcon is null) return;
-
-		if (_overlay?.IsSampling == true)
-		{
-			_overlay.StopSampling();
-		}
-
-		e.Cancel = true;
-		Hide();
-	}
+	private void MainWindow_Closing(object? sender, CancelEventArgs e) => SaveState();
 
 	private void ColumnSplitter_DragCompleted(object sender, DragCompletedEventArgs e) => SaveState();
 
