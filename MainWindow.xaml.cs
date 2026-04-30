@@ -77,7 +77,7 @@ public partial class MainWindow : Window
 	{
 		_trayIcon = new WinForms.NotifyIcon
 		{
-			Icon = System.Drawing.SystemIcons.Application,
+			Icon = new System.Drawing.Icon(Path.Combine(AppContext.BaseDirectory, "Assets", "Icons", "recolor-main.ico")),
 			Text = "Re_Color",
 			Visible = true
 		};
