@@ -41,6 +41,8 @@ public partial class MainWindow : Window
 	private readonly string _statePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Re_Color", "state.json");
 	private readonly ProjectSerializationService _serializationService = new();
 	private bool _isUpdatingProjectMeta;
+	private bool _isExiting;
+	private bool _isStateLoaded;
 
 	public MainWindow()
 	{
@@ -62,6 +64,7 @@ public partial class MainWindow : Window
 		butSave.Click += (_, _) => SaveState();
 		InitializeTrayIcon();
 		LoadState();
+     _isStateLoaded = true;
 		ProjectsList.ItemsSource = _projects;
 		if (_projects.Count == 0)
 		{
@@ -78,7 +81,7 @@ public partial class MainWindow : Window
 	{
 		_trayIcon = new WinForms.NotifyIcon
 		{
-			Icon = new System.Drawing.Icon(Path.Combine(AppContext.BaseDirectory, "Assets", "Icons", "recolor-main.ico")),
+       Icon = LoadTrayIcon(),
 			Text = "Re_Color",
 			Visible = true
 		};
@@ -90,6 +93,18 @@ public partial class MainWindow : Window
 		_trayIcon.DoubleClick += (_, _) => ShowFromTray();
 	}
 
+	private static System.Drawing.Icon LoadTrayIcon()
+	{
+		var resourceUri = new Uri("pack://application:,,,/Assets/Icons/recolor-main.ico", UriKind.Absolute);
+		var resourceInfo = System.Windows.Application.GetResourceStream(resourceUri);
+		if (resourceInfo?.Stream is null)
+		{
+			throw new FileNotFoundException("Tray icon resource not found.", resourceUri.ToString());
+		}
+
+		return new System.Drawing.Icon(resourceInfo.Stream);
+	}
+
 	private void ShowFromTray()
 	{
 		Show();
@@ -99,6 +114,7 @@ public partial class MainWindow : Window
 
 	private void ExitApplication()
 	{
+      _isExiting = true;
 		if (_overlay?.IsSampling == true)
 		{
 			_overlay.StopSampling();
@@ -395,6 +411,7 @@ public partial class MainWindow : Window
 
 	private void SaveState()
 	{
+    if (!_isStateLoaded) return;
 		Directory.CreateDirectory(Path.GetDirectoryName(_statePath)!);
 		var json = _serializationService.SerializeAppState(_projects, _recentColors.Select(x => x.Hex).ToList(), Width, Height, LeftPaneColumn.Width.Value);
 		File.WriteAllText(_statePath, json);
@@ -423,7 +440,7 @@ public partial class MainWindow : Window
 	{
 		SaveState();
 		_hotkeyService?.Dispose();
-		if (_trayIcon is not null)
+    if (_isExiting && _trayIcon is not null)
 		{
 			_trayIcon.Visible = false;
 			_trayIcon.Dispose();
@@ -431,7 +448,17 @@ public partial class MainWindow : Window
 		}
 	}
 
-	private void MainWindow_Closing(object? sender, CancelEventArgs e) => SaveState();
+  private void MainWindow_Closing(object? sender, CancelEventArgs e)
+	{
+		if (!_isExiting)
+		{
+			e.Cancel = true;
+			Hide();
+			return;
+		}
+
+		SaveState();
+	}
 
 	private void ColumnSplitter_DragCompleted(object sender, DragCompletedEventArgs e) => SaveState();
 

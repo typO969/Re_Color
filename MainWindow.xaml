@@ -127,7 +127,7 @@
                                  Foreground="{Binding EditableTextBrush}"
                                  Text="{Binding EditableHex}" />
                            </Border>
-                           <Border Height="110" Margin="1" Background="{Binding GrayBrush}" ToolTip="Calculated grayscale">
+                           <Border Height="80" Margin="1" Background="{Binding GrayBrush}" ToolTip="Calculated grayscale">
                               <TextBlock
                                  Margin="8,10,8,0"
                                  FontSize="21"
