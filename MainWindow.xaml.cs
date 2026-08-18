@@ -62,6 +62,7 @@ public partial class MainWindow : Window
 		_hotkeyService.Register();
 		butSample.Click += (_, _) => OpenSamplingOverlay();
 		butSave.Click += (_, _) => SaveState();
+		SetToolbarVectorIcons();
 		InitializeTrayIcon();
 		LoadState();
      _isStateLoaded = true;
@@ -73,6 +74,29 @@ public partial class MainWindow : Window
 		ProjectsList.SelectedIndex = Math.Max(0, ProjectsList.SelectedIndex);
 		RenderRecents();
 		SlotsItemsControl.ItemsSource = _slotSwatches;
+	}
+
+	private void SetToolbarVectorIcons()
+	{
+		butAddProject.Content = LoadPngIcon("Assets/Icons/AddFolder.png");
+		butRemoveProject.Content = LoadPngIcon("Assets/Icons/Remove.png");
+		butImportProjects.Content = LoadPngIcon("Assets/Icons/Import.png");
+		butExportProjects.Content = LoadPngIcon("Assets/Icons/Export.png");
+		butExportAse.Content = LoadPngIcon("Assets/Icons/ExportData.png");
+	}
+
+	private static object LoadPngIcon(string resourcePath)
+	{
+		var uri = new Uri($"pack://application:,,,/{resourcePath}", UriKind.Absolute);
+		var bitmap = new System.Windows.Media.Imaging.BitmapImage(uri);
+		var image = new System.Windows.Controls.Image { Source = bitmap };
+		return image;
+	}
+
+	private static object LoadVectorIcon(string resourcePath)
+	{
+		var uri = new Uri($"pack://application:,,,/{resourcePath}", UriKind.Absolute);
+		return System.Windows.Application.LoadComponent(uri);
 	}
 
 	private void HotkeyService_HotkeyPressed(object? sender, EventArgs e) => OpenSamplingOverlay();

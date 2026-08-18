@@ -11,6 +11,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Resource Include="..\..\..\..\..\+LIBRARY\ICO\Visual Studio 2026 Image Library\Visual Studio 2026 Image Library\images\AddFolder.png" Link="Assets\Icons\AddFolder.png" />
+    <Resource Include="..\..\..\..\..\+LIBRARY\ICO\Visual Studio 2026 Image Library\Visual Studio 2026 Image Library\images\Export.png" Link="Assets\Icons\Export.png" />
+    <Resource Include="..\..\..\..\..\+LIBRARY\ICO\Visual Studio 2026 Image Library\Visual Studio 2026 Image Library\images\ExportData.png" Link="Assets\Icons\ExportData.png" />
+    <Resource Include="..\..\..\..\..\+LIBRARY\ICO\Visual Studio 2026 Image Library\Visual Studio 2026 Image Library\images\Import.png" Link="Assets\Icons\Import.png" />
+    <Resource Include="..\..\..\..\..\+LIBRARY\ICO\Visual Studio 2026 Image Library\Visual Studio 2026 Image Library\images\Remove.png" Link="Assets\Icons\Remove.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include=".github\copilot-instructions.md" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="Assets\Icons\recolor-main.ico" />
   </ItemGroup>
 

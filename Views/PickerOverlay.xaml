@@ -12,36 +12,36 @@
    WindowStyle="None"
    AllowsTransparency="True">
 
-   <Border Padding="8" CornerRadius="10" Background="#222222" UseLayoutRounding="False">
-      <Grid>
-         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="42" />
-            <ColumnDefinition Width="*" />
-         </Grid.ColumnDefinitions>
+    <Border Padding="8" CornerRadius="10" Background="#222222" UseLayoutRounding="False">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="42" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
 
-         <Border Grid.Column="0" CornerRadius="8" BorderBrush="#444444" BorderThickness="1" ClipToBounds="True">
-            <Grid>
-               <Grid.RowDefinitions>
-                  <RowDefinition Height="2*" />
-                  <RowDefinition Height="*" />
-               </Grid.RowDefinitions>
-               <Rectangle x:Name="ColorPreviewRegion" Grid.Row="0" Fill="#333333" />
-               <Rectangle x:Name="GrayPreviewRegion" Grid.Row="1" Fill="#777777" />
-            </Grid>
-         </Border>
+            <Border Grid.Column="0" CornerRadius="8" BorderBrush="#444444" BorderThickness="1" ClipToBounds="True">
+                <Grid UseLayoutRounding="False">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="2*" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Rectangle x:Name="ColorPreviewRegion" Grid.Row="0" Fill="#333333" HorizontalAlignment="Center" Margin="0,0,0,15" Grid.RowSpan="2" Width="40" UseLayoutRounding="True" RadiusX="6.871" RadiusY="6.871" />
+                    <Rectangle x:Name="GrayPreviewRegion" Grid.Row="1" Fill="#777777" RadiusX="5.887" RadiusY="5.887" />
+                </Grid>
+            </Border>
 
-         <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
-            <TextBlock
+            <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
+                <TextBlock
                x:Name="HexText"
                FontSize="16"
                Foreground="White"
                Text="#------" />
-            <TextBlock
+                <TextBlock
                x:Name="RgbText"
                FontSize="11"
                Foreground="#CCCCCC"
                Text="rgb(-, -, -)" />
-         </StackPanel>
-      </Grid>
-   </Border>
+            </StackPanel>
+        </Grid>
+    </Border>
 </Window>

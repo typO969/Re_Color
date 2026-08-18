@@ -9,7 +9,23 @@
    Height="760"
    Background="#161616"
    Foreground="#E8E8E8"
-   mc:Ignorable="d" Icon="/Assets/Icons/recolor-main.ico">
+   Icon="/Assets/Icons/recolor-main.ico"
+   mc:Ignorable="d" MinWidth="1000" MinHeight="500">
+   <Window.Resources>
+      <Style x:Key="ToolbarIconButtonStyle" TargetType="Button">
+         <Setter Property="Width" Value="36" />
+         <Setter Property="Height" Value="36" />
+         <Setter Property="Margin" Value="0,0,8,8" />
+         <Setter Property="Padding" Value="0" />
+         <Setter Property="Background" Value="#2B2B2B" />
+         <Setter Property="BorderBrush" Value="#3D3D3D" />
+         <Setter Property="BorderThickness" Value="1" />
+         <Setter Property="Foreground" Value="#E8E8E8" />
+         <Setter Property="HorizontalContentAlignment" Value="Center" />
+         <Setter Property="VerticalContentAlignment" Value="Center" />
+         <Setter Property="ToolTipService.ShowDuration" Value="60000" />
+      </Style>
+   </Window.Resources>
    <Grid Margin="12">
       <Grid.RowDefinitions>
          <RowDefinition Height="Auto" />
@@ -18,10 +34,28 @@
       </Grid.RowDefinitions>
 
       <DockPanel Margin="0,0,0,10">
-         <TextBlock FontSize="20" FontWeight="SemiBold" Text="Re_Color" Width="114" FontFamily="Helvetica LT Std Black" />
-         <TextBlock Margin="14,4,0,0" Foreground="#A2A2A2" Text="Ctrl+Alt+C to sample, click swatch to copy" Width="231" />
-            <Button x:Name="butSample" HorizontalAlignment="Right" Width="100" Content="🧪 Re__Pick" MinWidth="50" MinHeight="22" UseLayoutRounding="False" FontSize="14" FontWeight="Bold"/>
-        </DockPanel>
+         <TextBlock
+            Width="114"
+            FontFamily="Helvetica LT Std Black"
+            FontSize="20"
+            FontWeight="SemiBold"
+            Text="Re_Color" />
+         <TextBlock
+            Width="231"
+            Margin="14,4,0,0"
+            Foreground="#A2A2A2"
+            Text="Ctrl+Alt+C to sample, click swatch to copy" />
+         <Button
+            x:Name="butSample"
+            Width="100"
+            MinWidth="50"
+            MinHeight="22"
+            HorizontalAlignment="Right"
+            Content="🧪 Re__Pick"
+            FontSize="14"
+            FontWeight="Bold"
+            UseLayoutRounding="False" />
+      </DockPanel>
 
       <Border
          Grid.Row="1"
@@ -41,25 +75,84 @@
 
       <Grid Grid.Row="2" Margin="0,12,0,0">
          <Grid.ColumnDefinitions>
-            <ColumnDefinition x:Name="LeftPaneColumn" Width="330" MinWidth="240" />
+            <ColumnDefinition
+               x:Name="LeftPaneColumn"
+               Width="330"
+               MinWidth="240" />
             <ColumnDefinition Width="6" />
-            <ColumnDefinition x:Name="RightPaneColumn" Width="*" MinWidth="420" />
+            <ColumnDefinition
+               x:Name="RightPaneColumn"
+               Width="*"
+               MinWidth="420" />
          </Grid.ColumnDefinitions>
 
-         <Border Grid.Column="0" Padding="10" Background="#1E1E1E" BorderBrush="#353535" BorderThickness="1" CornerRadius="8">
+         <Border
+            Grid.Column="0"
+            Padding="10"
+            Background="#1E1E1E"
+            BorderBrush="#353535"
+            BorderThickness="1"
+            CornerRadius="8" MinWidth="330">
             <DockPanel>
-               <WrapPanel x:Name="spProjControl" DockPanel.Dock="Top" Margin="0,0,0,8" Orientation="Horizontal" ItemHeight="30">
-                  <Button Width="100" Margin="0,0,8,8" Click="AddProject_Click" Content="New Project" />
-                  <Button Width="120" Margin="0,0,8,8" Click="RemoveProject_Click" Content="Remove Project" />
-                  <ComboBox x:Name="SortCombo" Width="130" Margin="0,0,8,8" SelectionChanged="SortCombo_SelectionChanged">
-                     <ComboBoxItem IsSelected="True" Content="Sort: Date" />
+               <WrapPanel
+                  x:Name="spProjControl"
+                  Margin="0,0,0,8"
+                  DockPanel.Dock="Top"
+                  ItemHeight="30"
+                  Orientation="Horizontal">
+                  <Button
+                     x:Name="butAddProject"
+                     Width="30"
+                     Height="30"
+                     AutomationProperties.Name="Add Project"
+                     Click="AddProject_Click"
+                     Style="{StaticResource ToolbarIconButtonStyle}"
+                     ToolTip="Add Project" Margin="0,0,0,0" />
+                  <Button
+                     x:Name="butRemoveProject"
+                     Width="30"
+                     Height="30"
+                     AutomationProperties.Name="Remove Project"
+                     Click="RemoveProject_Click"
+                     Style="{StaticResource ToolbarIconButtonStyle}"
+                     ToolTip="Remove Project" Margin="0,0,0,0" />
+                  <ComboBox
+                     x:Name="SortCombo"
+                     Width="130"
+                     Margin="0,0,8,8"
+                     SelectionChanged="SortCombo_SelectionChanged">
+                     <ComboBoxItem Content="Sort: Date" IsSelected="True" />
                      <ComboBoxItem Content="Sort: Name" />
                   </ComboBox>
-                  <Button Width="70" Margin="0,0,8,8" Click="ImportProjects_Click" Content="Import" />
-                  <Button Width="70" Margin="0,0,8,8" Click="ExportProjects_Click" Content="Export" />
-                  <Button Width="100" Margin="0,0,0,8" Click="ExportAse_Click" Content="Export ASE" />
+                  <Button
+                     x:Name="butImportProjects"
+                     Width="30"
+                     Height="30"
+                     AutomationProperties.Name="Import Projects"
+                     Click="ImportProjects_Click"
+                     Style="{StaticResource ToolbarIconButtonStyle}"
+                     ToolTip="Import Projects" Margin="0,0,0,0" />
+                  <Button
+                     x:Name="butExportProjects"
+                     Width="30"
+                     Height="30"
+                     AutomationProperties.Name="Export Projects"
+                     Click="ExportProjects_Click"
+                     Style="{StaticResource ToolbarIconButtonStyle}"
+                     ToolTip="Export Projects" Margin="0,0,0,0" />
+                  <Button
+                     x:Name="butExportAse"
+                     Width="30"
+                     Height="30"
+                     AutomationProperties.Name="Export ASE"
+                     Click="ExportAse_Click"
+                     Style="{StaticResource ToolbarIconButtonStyle}"
+                     ToolTip="Export ASE" Margin="0,0,0,0" />
                </WrapPanel>
-               <ListBox x:Name="ProjectsList" DisplayMemberPath="DisplayLine" SelectionChanged="ProjectsList_SelectionChanged" />
+               <ListBox
+                  x:Name="ProjectsList"
+                  DisplayMemberPath="DisplayLine"
+                  SelectionChanged="ProjectsList_SelectionChanged" />
             </DockPanel>
          </Border>
 
@@ -68,11 +161,11 @@
             Width="6"
             HorizontalAlignment="Stretch"
             VerticalAlignment="Stretch"
+            Background="#2C2C2C"
+            DragCompleted="ColumnSplitter_DragCompleted"
             ResizeBehavior="PreviousAndNext"
             ResizeDirection="Columns"
-            Background="#2C2C2C"
-            ShowsPreview="True"
-            DragCompleted="ColumnSplitter_DragCompleted" />
+            ShowsPreview="True" />
 
          <Grid Grid.Column="2" Margin="12,0,0,0">
             <Grid.RowDefinitions>
@@ -81,19 +174,58 @@
                <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <Border Padding="10" Background="#1E1E1E" BorderBrush="#353535" BorderThickness="1" CornerRadius="8">
+            <Border
+               Padding="10"
+               Background="#1E1E1E"
+               BorderBrush="#353535"
+               BorderThickness="1"
+               CornerRadius="8">
                <WrapPanel x:Name="spProjMD" Orientation="Horizontal">
-                  <TextBlock VerticalAlignment="Center" FontSize="18" FontWeight="SemiBold" Text="Project" />
-                  <TextBox x:Name="ProjectNameBox" Width="280" Margin="8,0,0,0" TextChanged="ProjectMeta_Changed" />
-                  <TextBlock Margin="18,0,0,0" VerticalAlignment="Center" Text="Started" />
-                  <DatePicker x:Name="StartDatePicker" Width="140" Margin="6,0,0,0" SelectedDateChanged="ProjectMeta_Changed" />
-                  <TextBlock Margin="12,0,0,0" VerticalAlignment="Center" Text="Due" />
-                  <DatePicker x:Name="DueDatePicker" Width="140" Margin="6,0,0,0" SelectedDateChanged="ProjectMeta_Changed" />
-                        <Button x:Name="butSave" Width="100" HorizontalAlignment="Right" Margin="18,0,0,0" MinWidth="80" MinHeight="24" Content="Save Project"></Button>
+                  <TextBlock
+                     VerticalAlignment="Center"
+                     FontSize="18"
+                     FontWeight="SemiBold"
+                     Text="Project" />
+                  <TextBox
+                     x:Name="ProjectNameBox"
+                     Width="280"
+                     Margin="8,0,0,0"
+                     TextChanged="ProjectMeta_Changed" />
+                  <TextBlock
+                     Margin="18,0,0,0"
+                     VerticalAlignment="Center"
+                     Text="Started" />
+                  <DatePicker
+                     x:Name="StartDatePicker"
+                     Width="140"
+                     Margin="6,0,0,0"
+                     SelectedDateChanged="ProjectMeta_Changed" />
+                  <TextBlock
+                     Margin="12,0,0,0"
+                     VerticalAlignment="Center"
+                     Text="Due" />
+                  <DatePicker
+                     x:Name="DueDatePicker"
+                     Width="140"
+                     Margin="6,0,0,0"
+                     SelectedDateChanged="ProjectMeta_Changed" />
+                  <Button
+                     x:Name="butSave"
+                     Width="100"
+                     MinWidth="80"
+                     MinHeight="24"
+                     Margin="18,0,0,0"
+                     HorizontalAlignment="Right"
+                     Content="Save Project" />
                </WrapPanel>
             </Border>
 
-            <UniformGrid x:Name="ugSlotItemsLabel" Grid.Row="1" Margin="0,10,0,8" Columns="5" VerticalAlignment="Bottom">
+            <UniformGrid
+               x:Name="ugSlotItemsLabel"
+               Grid.Row="1"
+               Margin="0,10,0,8"
+               VerticalAlignment="Bottom"
+               Columns="5">
                <TextBlock HorizontalAlignment="Center" Text="Accent 1 (Light)" />
                <TextBlock HorizontalAlignment="Center" Text="Secondary (Links)" />
                <TextBlock HorizontalAlignment="Center" Text="Primary (Brand)" />
@@ -101,7 +233,10 @@
                <TextBlock HorizontalAlignment="Center" Text="Accent 2 (Dark)" />
             </UniformGrid>
 
-            <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+            <ScrollViewer
+               Grid.Row="2"
+               HorizontalScrollBarVisibility="Disabled"
+               VerticalScrollBarVisibility="Auto">
                <ItemsControl x:Name="SlotsItemsControl">
                   <ItemsControl.ItemsPanel>
                      <ItemsPanelTemplate>
@@ -114,12 +249,12 @@
                            <Border
                               Height="110"
                               Margin="1"
-                              Background="{Binding EditableBrush}"
-                              ToolTip="Right-click to Add/Remove; drag recent colors here"
-                              Tag="{Binding Index}"
                               AllowDrop="True"
+                              Background="{Binding EditableBrush}"
+                              Drop="Slot_Drop"
                               Loaded="EditableSwatch_Loaded"
-                              Drop="Slot_Drop">
+                              Tag="{Binding Index}"
+                              ToolTip="Right-click to Add/Remove; drag recent colors here">
                               <TextBlock
                                  Margin="8,10,8,0"
                                  FontSize="21"
@@ -127,7 +262,11 @@
                                  Foreground="{Binding EditableTextBrush}"
                                  Text="{Binding EditableHex}" />
                            </Border>
-                           <Border Height="80" Margin="1" Background="{Binding GrayBrush}" ToolTip="Calculated grayscale">
+                           <Border
+                              Height="80"
+                              Margin="1"
+                              Background="{Binding GrayBrush}"
+                              ToolTip="Calculated grayscale">
                               <TextBlock
                                  Margin="8,10,8,0"
                                  FontSize="21"
