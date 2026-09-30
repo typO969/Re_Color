@@ -20,3 +20,11 @@ I'm sure three are many bugs left to find and fix, but it is what it is.
 
 - Adobe apps that support ASE palettes (e.g., Photoshop, Illustrator).
 - Affinity apps with ASE palette import support.
+
+## GUI & Appearance
+
+### The Color Picker:
+  <img width="752" alt="theColorPicker" src="https://github.com/user-attachments/assets/4af065f6-370b-4b9c-b164-a91f5ac0f40d" />
+
+### The Manager Window:
+  <img width="900" alt="theManagerWindow" src="https://github.com/user-attachments/assets/ed45e557-e12d-4186-ad8b-c517eb115055" />
