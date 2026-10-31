@@ -11,11 +11,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Resource Include="..\..\..\..\..\+LIBRARY\ICO\Visual Studio 2026 Image Library\Visual Studio 2026 Image Library\images\AddFolder.png" Link="Assets\Icons\AddFolder.png" />
-    <Resource Include="..\..\..\..\..\+LIBRARY\ICO\Visual Studio 2026 Image Library\Visual Studio 2026 Image Library\images\Export.png" Link="Assets\Icons\Export.png" />
-    <Resource Include="..\..\..\..\..\+LIBRARY\ICO\Visual Studio 2026 Image Library\Visual Studio 2026 Image Library\images\ExportData.png" Link="Assets\Icons\ExportData.png" />
-    <Resource Include="..\..\..\..\..\+LIBRARY\ICO\Visual Studio 2026 Image Library\Visual Studio 2026 Image Library\images\Import.png" Link="Assets\Icons\Import.png" />
-    <Resource Include="..\..\..\..\..\+LIBRARY\ICO\Visual Studio 2026 Image Library\Visual Studio 2026 Image Library\images\Remove.png" Link="Assets\Icons\Remove.png" />
+    <None Remove="Resources\AddFolder.png" />
+    <None Remove="Resources\Export.png" />
+    <None Remove="Resources\ExportData.png" />
+    <None Remove="Resources\Import.png" />
+    <None Remove="Resources\Remove.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -24,6 +24,36 @@
 
   <ItemGroup>
     <Resource Include="Assets\Icons\recolor-main.ico" />
+    <Resource Include="Resources\AddFolder.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\Export.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\ExportData.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\Import.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\Remove.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

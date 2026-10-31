@@ -78,11 +78,11 @@ public partial class MainWindow : Window
 
 	private void SetToolbarVectorIcons()
 	{
-		butAddProject.Content = LoadPngIcon("Assets/Icons/AddFolder.png");
-		butRemoveProject.Content = LoadPngIcon("Assets/Icons/Remove.png");
-		butImportProjects.Content = LoadPngIcon("Assets/Icons/Import.png");
-		butExportProjects.Content = LoadPngIcon("Assets/Icons/Export.png");
-		butExportAse.Content = LoadPngIcon("Assets/Icons/ExportData.png");
+		butAddProject.Content = LoadPngIcon("Resources/AddFolder.png");
+		butRemoveProject.Content = LoadPngIcon("Resources/Remove.png");
+		butImportProjects.Content = LoadPngIcon("Resources/Import.png");
+		butExportProjects.Content = LoadPngIcon("Resources/Export.png");
+		butExportAse.Content = LoadPngIcon("Resources/ExportData.png");
 	}
 
 	private static object LoadPngIcon(string resourcePath)
